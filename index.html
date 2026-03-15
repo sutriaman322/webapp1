@@ -89,7 +89,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Music Button Styling */
         .music-control {
             position: fixed;
             top: 20px;
@@ -112,7 +111,7 @@
 </head>
 <body class="flex items-center justify-center p-4">
 
-    <!-- Audio Element (Instrumental Islamic/Arabic Style) -->
+    <!-- Audio Element -->
     <audio id="bg-music" loop>
         <source src="https://cdn.pixabay.com/audio/2022/10/14/audio_3e44983058.mp3" type="audio/mpeg">
     </audio>
@@ -359,8 +358,15 @@
 
                 currentCardId = docRef.id;
                 
-                const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?id=' + currentCardId;
-                window.history.pushState({path:newUrl},'',newUrl);
+                // Coba kemas kini URL, abaikan jika gagal dalam sandbox
+                try {
+                    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?id=' + currentCardId;
+                    if (!window.location.href.startsWith('blob:')) {
+                        window.history.pushState({path:newUrl},'',newUrl);
+                    }
+                } catch (historyErr) {
+                    console.warn("History update skipped in this environment.");
+                }
 
                 renderCard(to, from);
             } catch (error) {
@@ -373,9 +379,22 @@
         };
 
         window.copyShareLink = function() {
-            const shareUrl = window.location.href;
+            if (!currentCardId) return;
+            
+            // Jana pautan yang betul berdasarkan lokasi semasa
+            let shareUrl = window.location.href.split('?')[0];
+            
+            // Jika dalam pratonton blob, pautan tidak akan berfungsi secara luaran,
+            // tetapi kita tetap bina pautan untuk kegunaan selepas 'deployment'.
+            if (shareUrl.startsWith('blob:')) {
+                // Cuba teka URL sebenar jika boleh, atau biarkan sahaja
+                shareUrl = shareUrl.replace('blob:', ''); 
+            }
+            
+            const finalLink = shareUrl + '?id=' + currentCardId;
+            
             const textArea = document.createElement("textarea");
-            textArea.value = shareUrl;
+            textArea.value = finalLink;
             document.body.appendChild(textArea);
             textArea.select();
             document.execCommand('copy');
@@ -384,7 +403,12 @@
         };
 
         window.resetView = function() {
-            window.history.pushState({path:'/'},'',window.location.pathname);
+            try {
+                if (!window.location.href.startsWith('blob:')) {
+                    window.history.pushState({path:'/'},'',window.location.pathname);
+                }
+            } catch (e) {}
+
             const form = document.getElementById('view-form');
             const card = document.getElementById('view-card');
             card.classList.add('scale-95', 'opacity-0');
@@ -401,7 +425,10 @@
         window.copyToClipboard = function() {
             const to = document.getElementById('display-to').innerText;
             const from = document.getElementById('display-from').innerText;
-            const shareUrl = window.location.href;
+            
+            let baseUrl = window.location.href.split('?')[0].replace('blob:', '');
+            const shareUrl = baseUrl + '?id=' + currentCardId;
+            
             const text = `🌙 *Selamat Hari Raya Idul Fitri 1447 H* 🌙\n\nUntuk: *${to}*\n\nTaqabbalallahu minna wa minkum. Mohon maaf lahir dan batin atas segala khilaf.\n\nLihat kartu ucapan digital saya di sini:\n${shareUrl}\n\nSalam hangat,\n*${from}*`;
             
             const textArea = document.createElement("textarea");
