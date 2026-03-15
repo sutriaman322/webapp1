@@ -88,9 +88,38 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Music Button Styling */
+        .music-control {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(4, 47, 46, 0.6);
+            backdrop-blur: blur(8px);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            color: #d4af37;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .music-control:hover {
+            background: rgba(4, 47, 46, 0.9);
+            transform: scale(1.1);
+        }
     </style>
 </head>
 <body class="flex items-center justify-center p-4">
+
+    <!-- Audio Element (Instrumental Islamic/Arabic Style) -->
+    <audio id="bg-music" loop>
+        <source src="https://cdn.pixabay.com/audio/2022/10/14/audio_3e44983058.mp3" type="audio/mpeg">
+    </audio>
+
+    <button id="music-toggle" class="music-control" onclick="toggleMusic()">
+        <i data-lucide="volume-x" id="music-icon"></i>
+    </button>
 
     <div class="pattern-overlay"></div>
     <div class="mosque-bg"></div>
@@ -116,7 +145,7 @@
                     <i data-lucide="mail-plus" class="text-yellow-700 w-8 h-8"></i>
                 </div>
                 <h1 class="text-2xl font-bold text-emerald-900">Kartu Ucapan Digital</h1>
-                <p class="text-emerald-600 mt-2">Buat ucapan spesial dan simpan selamanya</p>
+                <p class="text-emerald-600 mt-2">Buat ucapan spesial dengan musik Islami</p>
             </div>
 
             <div class="space-y-4">
@@ -136,6 +165,7 @@
                     <i data-lucide="sparkles" class="w-5 h-5"></i>
                 </button>
             </div>
+            <p class="text-[10px] text-center text-emerald-500 mt-6 italic">Musik akan otomatis diputar setelah diklik</p>
         </div>
 
         <!-- View 2: Kartu Ucapan -->
@@ -206,6 +236,33 @@
         let currentUser = null;
         let currentCardId = null;
 
+        // Music Logic
+        const audio = document.getElementById('bg-music');
+        const musicIcon = document.getElementById('music-icon');
+        let isMusicPlaying = false;
+
+        window.toggleMusic = function() {
+            if (isMusicPlaying) {
+                audio.pause();
+                musicIcon.setAttribute('data-lucide', 'volume-x');
+            } else {
+                audio.play();
+                musicIcon.setAttribute('data-lucide', 'volume-2');
+            }
+            isMusicPlaying = !isMusicPlaying;
+            lucide.createIcons();
+        };
+
+        function startMusic() {
+            if (!isMusicPlaying) {
+                audio.play().then(() => {
+                    isMusicPlaying = true;
+                    musicIcon.setAttribute('data-lucide', 'volume-2');
+                    lucide.createIcons();
+                }).catch(err => console.log("Autoplay blocked, waiting for interaction"));
+            }
+        }
+
         // Inisialisasi Auth
         async function initAuth() {
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -224,7 +281,6 @@
 
         initAuth();
 
-        // Cek apakah ada ID di URL
         async function checkUrlParams() {
             const urlParams = new URLSearchParams(window.location.search);
             const id = urlParams.get('id');
@@ -237,6 +293,8 @@
                         const data = docSnap.data();
                         currentCardId = id;
                         renderCard(data.to, data.from);
+                        // Trigger music on interaction after content is found
+                        document.body.addEventListener('click', startMusic, { once: true });
                     } else {
                         showLoading(false);
                     }
@@ -287,6 +345,9 @@
             btn.disabled = true;
             btnText.innerHTML = '<span class="loader"></span> Menyimpan...';
 
+            // Start music immediately on user interaction
+            startMusic();
+
             try {
                 const greetingsCol = collection(db, 'artifacts', appId, 'public', 'data', 'greetings');
                 const docRef = await addDoc(greetingsCol, {
@@ -298,7 +359,6 @@
 
                 currentCardId = docRef.id;
                 
-                // Update URL tanpa reload (simulasi sharing link)
                 const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?id=' + currentCardId;
                 window.history.pushState({path:newUrl},'',newUrl);
 
@@ -366,7 +426,6 @@
     </script>
 
     <script>
-        // Dekorasi Bintang & Ketupat (Non-Firebase logic)
         lucide.createIcons();
         const starsContainer = document.getElementById('stars-container');
         for (let i = 0; i < 40; i++) {
