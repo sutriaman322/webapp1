@@ -107,6 +107,42 @@
             background: rgba(4, 47, 46, 0.9);
             transform: scale(1.1);
         }
+
+        /* Gaya Khusus Cetak (Print Styles) */
+        @media print {
+            body {
+                background: white !important;
+                padding: 0;
+                margin: 0;
+            }
+            .mosque-bg, .pattern-overlay, .ketupat, .star, .music-control, #view-form, #view-loading, button, #toast, .flex.flex-col.gap-3, p.text-center.italic {
+                display: none !important;
+            }
+            .max-w-md {
+                max-width: 100% !important;
+                width: 100% !important;
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+            #view-card {
+                display: block !important;
+                opacity: 1 !important;
+                scale: 1 !important;
+                box-shadow: none !important;
+                border: 2px solid #065f46 !important;
+            }
+            .card-gradient {
+                background: white !important;
+            }
+            .bg-emerald-900 {
+                background-color: #064e3b !important;
+                -webkit-print-color-adjust: exact;
+            }
+            .text-yellow-400 {
+                color: #d4af37 !important;
+            }
+        }
     </style>
 </head>
 <body class="flex items-center justify-center p-4">
@@ -164,7 +200,7 @@
                     <i data-lucide="sparkles" class="w-5 h-5"></i>
                 </button>
             </div>
-            <p class="text-[10px] text-center text-emerald-500 mt-6 italic">Musik akan otomatis diputar setelah diklik</p>
+            <p class="text-[10px] text-center text-emerald-500 mt-6 italic text-balance">Musik akan otomatis diputar setelah diklik. Link unik akan otomatis dibuat.</p>
         </div>
 
         <!-- View 2: Kartu Ucapan -->
@@ -202,13 +238,16 @@
                             <i data-lucide="link" class="w-4 h-4"></i> Salin Link Ucapan
                         </button>
                         <div class="flex gap-3">
-                            <button onclick="resetView()" class="flex-1 border-2 border-emerald-800 text-emerald-800 font-bold py-3 rounded-xl hover:bg-emerald-50 transition-colors">
-                                Buat Baru
+                            <button onclick="window.print()" class="flex-1 bg-emerald-100 text-emerald-800 font-bold py-3 rounded-xl hover:bg-emerald-200 transition-colors flex items-center justify-center gap-2">
+                                <i data-lucide="printer" class="w-4 h-4"></i> Cetak Kartu
                             </button>
                             <button onclick="copyToClipboard()" class="flex-1 bg-emerald-800 text-yellow-400 font-bold py-3 rounded-xl hover:bg-emerald-900 transition-colors flex items-center justify-center gap-2">
                                 <i data-lucide="message-circle" class="w-4 h-4"></i> Teks WA
                             </button>
                         </div>
+                        <button onclick="resetView()" class="w-full text-emerald-600 text-xs font-semibold hover:underline">
+                            Buat Kartu Baru
+                        </button>
                     </div>
                 </div>
             </div>
@@ -224,7 +263,6 @@
         import { getFirestore, collection, addDoc, getDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // Konfigurasi Firebase dari environment
         const firebaseConfig = JSON.parse(__firebase_config);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'lebaran-greeting';
         
@@ -235,7 +273,6 @@
         let currentUser = null;
         let currentCardId = null;
 
-        // Music Logic
         const audio = document.getElementById('bg-music');
         const musicIcon = document.getElementById('music-icon');
         let isMusicPlaying = false;
@@ -262,7 +299,6 @@
             }
         }
 
-        // Inisialisasi Auth
         async function initAuth() {
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                 await signInWithCustomToken(auth, __initial_auth_token);
@@ -292,7 +328,6 @@
                         const data = docSnap.data();
                         currentCardId = id;
                         renderCard(data.to, data.from);
-                        // Trigger music on interaction after content is found
                         document.body.addEventListener('click', startMusic, { once: true });
                     } else {
                         showLoading(false);
@@ -344,7 +379,6 @@
             btn.disabled = true;
             btnText.innerHTML = '<span class="loader"></span> Menyimpan...';
 
-            // Start music immediately on user interaction
             startMusic();
 
             try {
@@ -358,14 +392,14 @@
 
                 currentCardId = docRef.id;
                 
-                // Coba kemas kini URL, abaikan jika gagal dalam sandbox
                 try {
-                    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?id=' + currentCardId;
+                    const baseUrl = window.location.origin + window.location.pathname;
+                    const newUrl = baseUrl + '?id=' + currentCardId;
                     if (!window.location.href.startsWith('blob:')) {
                         window.history.pushState({path:newUrl},'',newUrl);
                     }
                 } catch (historyErr) {
-                    console.warn("History update skipped in this environment.");
+                    console.warn("History update skipped.");
                 }
 
                 renderCard(to, from);
@@ -381,14 +415,11 @@
         window.copyShareLink = function() {
             if (!currentCardId) return;
             
-            // Jana pautan yang betul berdasarkan lokasi semasa
-            let shareUrl = window.location.href.split('?')[0];
+            // Logika link yang lebih stabil untuk GitHub Pages
+            let shareUrl = window.location.origin + window.location.pathname;
             
-            // Jika dalam pratonton blob, pautan tidak akan berfungsi secara luaran,
-            // tetapi kita tetap bina pautan untuk kegunaan selepas 'deployment'.
             if (shareUrl.startsWith('blob:')) {
-                // Cuba teka URL sebenar jika boleh, atau biarkan sahaja
-                shareUrl = shareUrl.replace('blob:', ''); 
+                shareUrl = window.location.href.split('?')[0].replace('blob:', ''); 
             }
             
             const finalLink = shareUrl + '?id=' + currentCardId;
@@ -404,8 +435,9 @@
 
         window.resetView = function() {
             try {
+                const baseUrl = window.location.origin + window.location.pathname;
                 if (!window.location.href.startsWith('blob:')) {
-                    window.history.pushState({path:'/'},'',window.location.pathname);
+                    window.history.pushState({path:baseUrl},'',baseUrl);
                 }
             } catch (e) {}
 
@@ -426,7 +458,9 @@
             const to = document.getElementById('display-to').innerText;
             const from = document.getElementById('display-from').innerText;
             
-            let baseUrl = window.location.href.split('?')[0].replace('blob:', '');
+            let baseUrl = window.location.origin + window.location.pathname;
+            if (baseUrl.startsWith('blob:')) baseUrl = window.location.href.split('?')[0].replace('blob:', '');
+            
             const shareUrl = baseUrl + '?id=' + currentCardId;
             
             const text = `🌙 *Selamat Hari Raya Idul Fitri 1447 H* 🌙\n\nUntuk: *${to}*\n\nTaqabbalallahu minna wa minkum. Mohon maaf lahir dan batin atas segala khilaf.\n\nLihat kartu ucapan digital saya di sini:\n${shareUrl}\n\nSalam hangat,\n*${from}*`;
