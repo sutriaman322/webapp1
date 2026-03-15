@@ -114,8 +114,10 @@
                 background: white !important;
                 padding: 0;
                 margin: 0;
+                overflow: visible !important;
             }
-            .mosque-bg, .pattern-overlay, .ketupat, .star, .music-control, #view-form, #view-loading, button, #toast, .flex.flex-col.gap-3, p.text-center.italic {
+            /* Sembunyikan semua elemen yang ditandai no-print */
+            .no-print, .mosque-bg, .pattern-overlay, .ketupat, .star, .music-control, #view-form, #view-loading, #toast, .music-control, button {
                 display: none !important;
             }
             .max-w-md {
@@ -124,13 +126,16 @@
                 position: absolute;
                 top: 0;
                 left: 0;
+                margin: 0 !important;
             }
             #view-card {
                 display: block !important;
                 opacity: 1 !important;
                 scale: 1 !important;
+                transform: none !important;
                 box-shadow: none !important;
                 border: 2px solid #065f46 !important;
+                background: white !important;
             }
             .card-gradient {
                 background: white !important;
@@ -138,6 +143,13 @@
             .bg-emerald-900 {
                 background-color: #064e3b !important;
                 -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            .bg-white {
+                background-color: white !important;
+            }
+            .text-emerald-900 {
+                color: #064e3b !important;
             }
             .text-yellow-400 {
                 color: #d4af37 !important;
@@ -152,25 +164,25 @@
         <source src="https://cdn.pixabay.com/audio/2022/10/14/audio_3e44983058.mp3" type="audio/mpeg">
     </audio>
 
-    <button id="music-toggle" class="music-control" onclick="toggleMusic()">
+    <button id="music-toggle" class="music-control no-print" onclick="toggleMusic()">
         <i data-lucide="volume-x" id="music-icon"></i>
     </button>
 
-    <div class="pattern-overlay"></div>
-    <div class="mosque-bg"></div>
-    <div id="stars-container" class="fixed inset-0 -z-10 pointer-events-none"></div>
-    <div id="ketupat-container" class="fixed inset-0 -z-2 pointer-events-none"></div>
+    <div class="pattern-overlay no-print"></div>
+    <div class="mosque-bg no-print"></div>
+    <div id="stars-container" class="fixed inset-0 -z-10 pointer-events-none no-print"></div>
+    <div id="ketupat-container" class="fixed inset-0 -z-2 pointer-events-none no-print"></div>
 
     <div class="max-w-md w-full relative">
         
         <!-- View Loading -->
-        <div id="view-loading" class="page-transition bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8 text-center hidden">
+        <div id="view-loading" class="page-transition bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8 text-center hidden no-print">
             <div class="loader mb-4"></div>
             <p class="text-emerald-800 font-semibold">Memuat ucapan...</p>
         </div>
 
         <!-- View 1: Form Input -->
-        <div id="view-form" class="page-transition bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8 border border-yellow-200/50 relative overflow-hidden">
+        <div id="view-form" class="page-transition bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8 border border-yellow-200/50 relative overflow-hidden no-print">
             <div class="absolute top-0 right-0 p-4 opacity-10">
                 <i data-lucide="moon" class="w-20 h-20 text-emerald-900"></i>
             </div>
@@ -208,8 +220,8 @@
             <div class="card-gradient rounded-3xl shadow-2xl overflow-hidden border-4 border-yellow-600/30 relative">
                 
                 <div class="h-32 bg-emerald-900 flex items-center justify-center relative overflow-hidden">
-                    <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/islamic-art.png')]"></div>
-                    <div class="absolute -bottom-6 flex gap-12">
+                    <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/islamic-art.png')] no-print"></div>
+                    <div class="absolute -bottom-6 flex gap-12 no-print">
                         <i data-lucide="lamp" class="w-12 h-12 text-yellow-400 fill-yellow-400 animate-bounce" style="animation-duration: 3s"></i>
                         <i data-lucide="star" class="w-10 h-10 text-yellow-200 fill-yellow-200 animate-pulse"></i>
                         <i data-lucide="lamp" class="w-12 h-12 text-yellow-400 fill-yellow-400 animate-bounce" style="animation-duration: 2.5s"></i>
@@ -233,12 +245,13 @@
                         <p class="font-bold text-emerald-900 text-xl" id="display-from"></p>
                     </div>
 
-                    <div class="flex flex-col gap-3">
+                    <!-- Tombol Navigasi (Hanya Muncul di Layar) -->
+                    <div class="flex flex-col gap-3 no-print">
                         <button id="btn-copy-link" onclick="copyShareLink()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-emerald-950 font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2">
                             <i data-lucide="link" class="w-4 h-4"></i> Salin Link Ucapan
                         </button>
                         <div class="flex gap-3">
-                            <button onclick="window.print()" class="flex-1 bg-emerald-100 text-emerald-800 font-bold py-3 rounded-xl hover:bg-emerald-200 transition-colors flex items-center justify-center gap-2">
+                            <button onclick="handlePrint()" class="flex-1 bg-emerald-100 text-emerald-800 font-bold py-3 rounded-xl hover:bg-emerald-200 transition-colors flex items-center justify-center gap-2">
                                 <i data-lucide="printer" class="w-4 h-4"></i> Cetak Kartu
                             </button>
                             <button onclick="copyToClipboard()" class="flex-1 bg-emerald-800 text-yellow-400 font-bold py-3 rounded-xl hover:bg-emerald-900 transition-colors flex items-center justify-center gap-2">
@@ -252,7 +265,7 @@
                 </div>
             </div>
 
-            <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-emerald-900 text-yellow-400 px-6 py-3 rounded-full text-sm shadow-xl opacity-0 transition-opacity pointer-events-none z-50">
+            <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-emerald-900 text-yellow-400 px-6 py-3 rounded-full text-sm shadow-xl opacity-0 transition-opacity pointer-events-none z-50 no-print">
                 Pesan siap dibagikan!
             </div>
         </div>
@@ -414,16 +427,11 @@
 
         window.copyShareLink = function() {
             if (!currentCardId) return;
-            
-            // Logika link yang lebih stabil untuk GitHub Pages
             let shareUrl = window.location.origin + window.location.pathname;
-            
             if (shareUrl.startsWith('blob:')) {
                 shareUrl = window.location.href.split('?')[0].replace('blob:', ''); 
             }
-            
             const finalLink = shareUrl + '?id=' + currentCardId;
-            
             const textArea = document.createElement("textarea");
             textArea.value = finalLink;
             document.body.appendChild(textArea);
@@ -431,6 +439,12 @@
             document.execCommand('copy');
             document.body.removeChild(textArea);
             showToast("Link ucapan berhasil disalin!");
+        };
+
+        window.handlePrint = function() {
+            // Pastikan tetingkap mendapat fokus untuk mengelakkan isu pada pelayar tertentu
+            window.focus();
+            window.print();
         };
 
         window.resetView = function() {
@@ -457,14 +471,10 @@
         window.copyToClipboard = function() {
             const to = document.getElementById('display-to').innerText;
             const from = document.getElementById('display-from').innerText;
-            
             let baseUrl = window.location.origin + window.location.pathname;
             if (baseUrl.startsWith('blob:')) baseUrl = window.location.href.split('?')[0].replace('blob:', '');
-            
             const shareUrl = baseUrl + '?id=' + currentCardId;
-            
             const text = `🌙 *Selamat Hari Raya Idul Fitri 1447 H* 🌙\n\nUntuk: *${to}*\n\nTaqabbalallahu minna wa minkum. Mohon maaf lahir dan batin atas segala khilaf.\n\nLihat kartu ucapan digital saya di sini:\n${shareUrl}\n\nSalam hangat,\n*${from}*`;
-            
             const textArea = document.createElement("textarea");
             textArea.value = text;
             document.body.appendChild(textArea);
@@ -491,7 +501,7 @@
         const starsContainer = document.getElementById('stars-container');
         for (let i = 0; i < 40; i++) {
             const star = document.createElement('div');
-            star.className = 'star';
+            star.className = 'star no-print';
             const size = Math.random() * 3 + 1;
             star.style.width = `${size}px`;
             star.style.height = `${size}px`;
@@ -506,7 +516,7 @@
 
         function createKetupat() {
             const ketupat = document.createElement('div');
-            ketupat.className = 'ketupat';
+            ketupat.className = 'ketupat no-print';
             ketupat.innerHTML = ketupatSVG;
             const startX = Math.random() * 100;
             const drift = (Math.random() - 0.5) * 400;
