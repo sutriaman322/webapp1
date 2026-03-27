@@ -3,106 +3,108 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pesan Spesial Idul Fitri</title>
+<title>Pesan Spesial Untukmu</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
 body {
-    background: black;
-    color: white;
-    overflow: hidden;
-    font-family: sans-serif;
+    margin:0;
+    overflow:hidden;
+    font-family:sans-serif;
+    color:white;
 }
 
-/* Opening cinematic */
-#opening {
-    transition: opacity 2s;
+/* 🎥 Background video */
+video {
+    position:fixed;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    z-index:-2;
 }
 
-/* Glow text */
+/* Overlay gelap */
+.overlay {
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.6);
+    z-index:-1;
+}
+
+/* Glow */
 .glow {
-    text-shadow: 0 0 20px gold;
+    text-shadow:0 0 20px gold;
 }
 
-/* Card animasi */
+/* Fade */
 .fade-in {
-    animation: fadeIn 1.5s ease forwards;
+    animation:fadeIn 2s forwards;
 }
 @keyframes fadeIn {
-    from {opacity:0; transform: scale(0.8);}
-    to {opacity:1; transform: scale(1);}
+    from{opacity:0; transform:scale(0.8);}
+    to{opacity:1; transform:scale(1);}
 }
 
-/* Stars */
-.star {
-    position: absolute;
-    background: gold;
-    border-radius: 50%;
-    animation: twinkle 2s infinite;
+/* Avatar */
+.avatar {
+    width:120px;
+    border-radius:50%;
+    margin:auto;
+    animation:float 3s infinite;
 }
-@keyframes twinkle {
-    50% {opacity: 0.2;}
+@keyframes float {
+    50% { transform: translateY(-10px); }
 }
 </style>
 </head>
 
 <body>
 
-<!-- ⭐ STARS -->
-<div id="stars"></div>
+<!-- 🎥 VIDEO BACKGROUND -->
+<video autoplay muted loop>
+<source src="https://cdn.coverr.co/videos/coverr-night-sky-1080p.mp4">
+</video>
 
-<!-- 🎬 OPENING -->
-<div id="opening" class="fixed inset-0 flex items-center justify-center bg-black z-50">
-    <div class="text-center">
-        <p class="text-xl animate-pulse">Seseorang mengirim pesan untukmu...</p>
-    </div>
-</div>
+<div class="overlay"></div>
 
-<!-- 🎧 AUDIO -->
-<audio id="music" loop>
-<source src="https://cdn.pixabay.com/audio/2022/10/14/audio_3e44983058.mp3">
-</audio>
+<div class="flex items-center justify-center min-h-screen p-4">
 
-<div class="flex items-center justify-center min-h-screen">
-
-<div class="max-w-md w-full p-4">
+<div class="max-w-md w-full text-center">
 
 <!-- FORM -->
-<div id="form" class="bg-white text-black p-6 rounded-2xl">
-    <h1 class="text-center font-bold mb-4">Buat Pesan</h1>
-    <input id="to" class="w-full mb-3 p-3 border rounded-xl" placeholder="Nama penerima">
-    <input id="from" class="w-full mb-3 p-3 border rounded-xl" placeholder="Nama kamu">
+<div id="form" class="bg-black/60 p-6 rounded-2xl">
+    <h1 class="mb-4 text-lg">Buat Pesan AI 🔥</h1>
 
-    <button onclick="generate()" class="w-full bg-green-700 text-white py-3 rounded-xl">
-        Kirim Pesan 🔥
+    <input id="to" class="w-full mb-3 p-3 rounded-xl text-black" placeholder="Nama penerima">
+    <input id="from" class="w-full mb-3 p-3 rounded-xl text-black" placeholder="Nama kamu">
+
+    <button onclick="generate()" class="w-full bg-green-600 py-3 rounded-xl">
+        Buat Sekarang 🚀
     </button>
 </div>
 
 <!-- CARD -->
-<div id="card" class="hidden text-center">
+<div id="card" class="hidden fade-in">
 
-    <h2 id="typing" class="text-xl mb-4 glow"></h2>
+    <!-- Avatar -->
+    <img src="https://i.imgur.com/6VBx3io.png" class="avatar">
 
-    <div class="bg-white text-black p-6 rounded-2xl fade-in">
-        <h1 class="text-2xl font-bold text-green-900 mb-3">
+    <h2 id="text" class="text-xl glow mt-4"></h2>
+
+    <div class="bg-white text-black p-6 rounded-2xl mt-4">
+        <h1 class="text-2xl font-bold text-green-900 mb-2">
             Selamat Idul Fitri 🌙
         </h1>
 
-        <p class="mb-3">
-            Mohon maaf lahir dan batin 🙏
-        </p>
+        <p class="mb-3">Mohon maaf lahir dan batin 🙏</p>
 
-        <p id="fromText" class="font-bold"></p>
+        <p id="fromText"></p>
 
         <button onclick="shareWA()" class="mt-4 w-full bg-green-500 text-white py-2 rounded-xl">
             Share Sekarang 🚀
         </button>
     </div>
-
-    <p class="mt-3 text-sm opacity-70">
-        Kirim ke 5 orang terdekatmu 💌
-    </p>
 
 </div>
 
@@ -110,101 +112,62 @@ body {
 </div>
 
 <script>
-const music = document.getElementById("music");
-
-/* 🎬 Opening */
-window.onload = () => {
-    setTimeout(() => {
-        document.getElementById("opening").style.opacity = "0";
-        setTimeout(() => {
-            document.getElementById("opening").remove();
-        }, 2000);
-    }, 2000);
-};
-
-/* ⭐ Stars generator */
-for(let i=0;i<50;i++){
-    let s = document.createElement("div");
-    s.className="star";
-    s.style.width="2px";
-    s.style.height="2px";
-    s.style.top=Math.random()*100+"%";
-    s.style.left=Math.random()*100+"%";
-    document.getElementById("stars").appendChild(s);
-}
-
-/* 🎧 Music fade */
-function playMusic(){
-    music.volume=0;
-    music.play();
-    let v=0;
-    let i=setInterval(()=>{
-        if(v<1){v+=0.05; music.volume=v;}
-        else clearInterval(i);
-    },200);
-}
-
 /* 🎙️ AI suara */
 function speak(text){
-    const msg = new SpeechSynthesisUtterance(text);
+    let msg=new SpeechSynthesisUtterance(text);
     msg.lang="id-ID";
     speechSynthesis.speak(msg);
 }
 
-/* ✨ Typewriter */
-function typeText(el, text){
+/* ✨ Typing */
+function type(el,text){
     let i=0;
     el.innerHTML="";
     let inter=setInterval(()=>{
         if(i<text.length){
-            el.innerHTML+=text[i];
-            i++;
+            el.innerHTML+=text[i++];
         } else clearInterval(inter);
-    },50);
+    },40);
 }
 
 /* 🚀 Generate */
 function generate(){
-    const to = document.getElementById("to").value || "Sahabat";
-    const from = document.getElementById("from").value || "Hamba Allah";
-
-    playMusic();
+    const to=document.getElementById("to").value || "Sahabat";
+    const from=document.getElementById("from").value || "Hamba Allah";
 
     const data=btoa(JSON.stringify({to,from}));
     history.pushState({}, "", "?data="+data);
 
-    showCard(to,from);
+    show(to,from);
 }
 
 /* 💌 Show */
-function showCard(to,from){
+function show(to,from){
     document.getElementById("form").classList.add("hidden");
 
     const card=document.getElementById("card");
     card.classList.remove("hidden");
 
-    typeText(document.getElementById("typing"), "Untuk "+to+"...");
+    type(document.getElementById("text"), "Halo "+to+"...");
 
     document.getElementById("fromText").innerText="Dari: "+from;
 
-    speak("Pesan untuk "+to);
+    speak("Halo "+to+" ini pesan spesial untukmu");
 }
 
-/* 🔗 Load URL */
-function load(){
+/* 🔗 Load */
+(function(){
     const p=new URLSearchParams(location.search);
     const d=p.get("data");
     if(d){
         const obj=JSON.parse(atob(d));
-        showCard(obj.to,obj.from);
-        playMusic();
+        show(obj.to,obj.from);
     }
-}
-load();
+})();
 
 /* 📲 Share */
 function shareWA(){
-    const text=encodeURIComponent("Lihat pesan ini 😭\n"+location.href);
+    const text=encodeURIComponent("Buka ini 😭\n"+location.href);
     window.open("https://wa.me/?text="+text);
 }
 </script>
